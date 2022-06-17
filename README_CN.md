@@ -2,7 +2,7 @@
 一个用 Go 实现的简易 actor 框架，受[云风 skynet](https://github.com/cloudwu/skynet) 的启发。
 
 # 为什么做这个框架
-实现这个框架的原因是使用了很多年云风的 skynet，已经很熟悉这种并发方式了，在 Go 里没有找到很接近的实现，所以动手实现了一个简单但够用的框架。
+实现这个框架的原因是使用了很多年云风的 skynet，已经很熟悉这种并发方式了，在 Go 里没有找到很接近的实现，所以动手实现了这个简单但够用的框架。
 
 云风的 skynet 里的 actor 可以看作是在一个独立线程里跑的，其中的代码是完全隔离的，其他 actor 即不能直接访问其内存，也不能直接调用其接口。actor 之间想要通信，必须通过发消息来进行。
 
@@ -24,7 +24,7 @@
 
 # Actor 消息分发函数
 每个 Actor 都有一个消息分发函数，定义:
-```
+```go
 // Dispatcher is the message dispatch function.
 type Dispatcher func(msg *Message) Ack
 ```
