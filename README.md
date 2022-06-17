@@ -4,9 +4,9 @@ A simple actor framework implemented in Go, inspired by [cloudwu's skynet](https
 # Why do this framework
 The reason for implementing this framework is that I have used [cloudwu's skynet](https://github.com/cloudwu/skynet) for many years. I am already familiar with this concurrency method. I have not found a very close implementation in Go, so I have implemented this simple but sufficient framework.
 
-The actors in cloudwu's skynet can be regarded as running in an independent thread, the code in it is completely isolated, and other actors cannot directly access its memory or call its interface directly. For actors to communicate, they must send messages.
+The actors in cloudwu's skynet can be regarded as running in an independent sandbox, the code in it is completely isolated, and other actors cannot directly access its memory or call its interface directly. For actors to communicate, they must send messages.
 
-Go's own goroutines cannot achieve this level of isolation. Each goroutine is similar to a C++ thread, and can directly access memory or call functions between them. This brings the problem that the boundaries of the code become very blurred. It is possible that some functions in a file run in this A goroutine, while other functions run in B goroutine. When the code becomes complex, locking each other becomes a very difficult thing.
+Go's own goroutines cannot achieve this level of isolation. Each goroutine is similar to a C++ thread, and can directly access memory or call functions between them. This brings the problem that the boundaries of the code become very blurred. It is possible that some functions in a file run in A goroutine, while other functions run in B goroutine. When the code becomes complex, locking each other becomes a very difficult thing.
 
 The Actor pattern can completely solve this kind of problem, and each actor can have a clear code boundary. Of course, due to the flexibility of Go itself, even using this Actor framework, it is still possible to write code with ambiguous boundaries. This requires the person who writes the code to constrain himself and plan the location of each Actor code before writing.
 
@@ -97,4 +97,4 @@ Call(client, server, func(ack Ack) {
 }, "get", "hello")
 ````
 
-For more usage methods, please refer to [skynet_test.go](skynet_test.go).
+For more usages, please refer to [skynet_test.go](skynet_test.go).
