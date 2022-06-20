@@ -49,6 +49,7 @@ type Actor struct {
 	name         string
 	exited       bool
 	Logger       log.Logger
+	Timer        *SkynetTimer
 }
 
 // MainFunc is the entry function executed when the Actor is initialized.

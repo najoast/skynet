@@ -6,24 +6,26 @@ import (
 	"github.com/najoast/skynet/util"
 )
 
-type ForeverTimer struct {
+type foreverTimer struct {
 	ticker *time.Ticker
 	stop   chan struct{}
 }
 
 // Stop prevents the Timer from firing.
-func (t *ForeverTimer) Stop() {
+func (t *foreverTimer) Stop() bool {
 	t.stop <- struct{}{}
+	return true
 }
 
 // Reset changes the timer to expire after duration d.
-func (t *ForeverTimer) Reset(d time.Duration) {
+func (t *foreverTimer) Reset(d time.Duration) bool {
 	t.ticker.Reset(d)
+	return true
 }
 
 // Forever create a timer that runs forever.
-func Forever(d time.Duration, cb func(), stop func(), pcall func(f func())) *ForeverTimer {
-	t := &ForeverTimer{
+func Forever(d time.Duration, cb func(), stop func(), pcall func(f func())) Timer {
+	t := &foreverTimer{
 		ticker: time.NewTicker(d),
 		stop:   make(chan struct{}),
 	}
@@ -46,11 +48,4 @@ func Forever(d time.Duration, cb func(), stop func(), pcall func(f func())) *For
 	}()
 
 	return t
-}
-
-type OnceTimer = time.Timer
-
-// Once create a timer that runs once.
-func Once(d time.Duration, cb func()) *OnceTimer {
-	return time.AfterFunc(d, cb)
 }

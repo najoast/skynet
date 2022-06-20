@@ -28,11 +28,12 @@ func NewActor(name string, pcall func(f func()), main MainFunc) *Actor {
 			Level:  log.Debug,
 			Prefix: fmt.Sprintf("[actor %s] ", name),
 		},
+		Timer: &SkynetTimer{},
 	}
-
-	main(actor)
+	actor.Timer.actor = actor
 
 	go actor.dispatch()
+	pcall(func() { main(actor) })
 
 	return actor
 }

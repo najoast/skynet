@@ -1,12 +1,5 @@
 package skynet
 
-import (
-	"fmt"
-	"time"
-
-	"github.com/najoast/skynet/timer"
-)
-
 // newSessionId create a new SessionId, don't worry about overflow,
 // as long as it doesn't repeat in a short time.
 func (actor *Actor) newSessionId() int {
@@ -34,8 +27,8 @@ func (actor *Actor) call(target *Actor, cb AckCb, fname string, args ...interfac
 	return err
 }
 
-// setDispatcher set the actor's message dispatch function.
-func (actor *Actor) setDispatcher(dispatcher Dispatcher) {
+// SetDispatcher set the actor's message dispatch function.
+func (actor *Actor) SetDispatcher(dispatcher Dispatcher) {
 	actor.dispatcher = dispatcher
 }
 
@@ -101,61 +94,7 @@ func (actor *Actor) Exit() {
 	actor.exited = true
 }
 
-// TimerOnce create a timer that executes only once.
-func (actor *Actor) TimerOnce(d time.Duration, f func()) (*timer.OnceTimer, error) {
-	if d < 0 {
-		return nil, fmt.Errorf("invalid duration")
-	}
-
-	sessionId := actor.newSessionId()
-	actor.sess2TimerCb[sessionId] = f
-
-	if d == 0 {
-		sendTo(actor, &Message{
-			typ:       messageTypeOnceTimer,
-			sessionId: sessionId,
-		})
-		return nil, nil
-	} else {
-		return timer.Once(d, func() {
-			sendTo(actor, &Message{
-				typ:       messageTypeOnceTimer,
-				sessionId: sessionId,
-			})
-		}), nil
-	}
-}
-
-// TimerForever create a timer that runs forever.
-func (actor *Actor) TimerForever(d time.Duration, f func()) (*timer.ForeverTimer, error) {
-	if d <= 0 {
-		return nil, fmt.Errorf("invalid duration")
-	}
-
-	sessionId := actor.newSessionId()
-	actor.sess2TimerCb[sessionId] = f
-
-	var t *timer.ForeverTimer
-
-	cb := func() {
-		err := sendTo(actor, &Message{
-			typ:       messageTypeForeverTimer,
-			sessionId: sessionId,
-		})
-		if err != nil && t != nil {
-			t.Stop()
-		}
-	}
-
-	stop := func() {
-		delete(actor.sess2TimerCb, sessionId)
-	}
-
-	t = timer.Forever(d, cb, stop, actor.pcall)
-	return t, nil
-}
-
 // Run function f inside the main actor goroutine.
 func (actor *Actor) Run(f func()) {
-	actor.TimerOnce(0, f)
+	actor.Timer.Once(0, f)
 }
