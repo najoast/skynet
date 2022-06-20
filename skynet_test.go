@@ -12,11 +12,11 @@ func TestHelloWorld(t *testing.T) {
 		actor.Logger.Info("main started!")
 
 		actor.SetDispatcher(func(msg *Message) Ack {
-			switch msg.fname {
+			switch msg.Fname {
 			case "hello":
-				actor.Logger.Infof("hello: %v", msg.args...)
+				actor.Logger.Infof("hello: %v", msg.Args...)
 			default:
-				actor.Logger.Infof("Unhandled fname %s(%v)!", msg.fname, msg.args)
+				actor.Logger.Infof("Unhandled fname %s(%v)!", msg.Fname, msg.Args)
 			}
 			return nil
 		})
@@ -49,14 +49,14 @@ func TestCall(t *testing.T) {
 	server := UniqueActor("simpledb:server", nil, func(actor *Actor) {
 		db := make(map[interface{}]interface{})
 		actor.SetDispatcher(func(msg *Message) Ack {
-			switch msg.fname {
+			switch msg.Fname {
 			case "set":
-				actor.Logger.Debugf("set %v %v", msg.args...)
-				db[msg.args[0]] = msg.args[1]
+				actor.Logger.Debugf("set %v %v", msg.Args...)
+				db[msg.Args[0]] = msg.Args[1]
 			case "get":
-				return Ack{db[msg.args[0]]}
+				return Ack{db[msg.Args[0]]}
 			default:
-				fmt.Printf("Unhandled fname %s(%v)!\n", msg.fname, msg.args)
+				fmt.Printf("Unhandled fname %s(%v)!\n", msg.Fname, msg.Args)
 			}
 			return nil
 		})

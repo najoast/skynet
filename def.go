@@ -21,8 +21,8 @@ const (
 
 // Message is a message sent to the Actor.
 type Message struct {
-	fname     string
-	args      []interface{}
+	Fname     string
+	Args      []interface{}
 	typ       messageType
 	ackChan   chan *Message
 	ack       Ack

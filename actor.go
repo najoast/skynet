@@ -1,5 +1,7 @@
 package skynet
 
+import "fmt"
+
 // newSessionId create a new SessionId, don't worry about overflow,
 // as long as it doesn't repeat in a short time.
 func (actor *Actor) newSessionId() int {
@@ -7,15 +9,15 @@ func (actor *Actor) newSessionId() int {
 	return actor.session
 }
 
-// call asynchronous request + response, non-blocking, the response
+// Call asynchronous request + response, non-blocking, the response
 // is executed through the callback function.
-func (actor *Actor) call(target *Actor, cb AckCb, fname string, args ...interface{}) error {
+func (actor *Actor) Call(target *Actor, cb AckCb, fname string, args ...interface{}) error {
 	sessionId := actor.newSessionId()
 	actor.sess2AckCb[sessionId] = cb
 
 	err := sendTo(target, &Message{
-		fname:     fname,
-		args:      args,
+		Fname:     fname,
+		Args:      args,
 		typ:       messageTypeCallReq,
 		ackChan:   actor.ch,
 		sessionId: sessionId,
@@ -27,6 +29,14 @@ func (actor *Actor) call(target *Actor, cb AckCb, fname string, args ...interfac
 	return err
 }
 
+func (actor *Actor) CallByName(name string, cb AckCb, fname string, args ...interface{}) error {
+	if target, exist := uniqueActors[name]; exist {
+		return actor.Call(target, cb, fname, args...)
+	} else {
+		return fmt.Errorf("Actor %s not found", name)
+	}
+}
+
 // SetDispatcher set the actor's message dispatch function.
 func (actor *Actor) SetDispatcher(dispatcher Dispatcher) {
 	actor.dispatcher = dispatcher
@@ -35,7 +45,7 @@ func (actor *Actor) SetDispatcher(dispatcher Dispatcher) {
 func (actor *Actor) checkDispatcher(msg *Message) Dispatcher {
 	if actor.dispatcher == nil && actor.Logger != nil {
 		actor.Logger.Warnf("Does'n have a Dispatcher, but received a %v message: %s(%v)",
-			msg.typ, msg.fname, msg.args)
+			msg.typ, msg.Fname, msg.Args)
 	}
 	return actor.dispatcher
 }
@@ -69,14 +79,14 @@ func (actor *Actor) dispatch() {
 
 			case messageTypeCallAck:
 				if cb, exist := actor.sess2AckCb[msg.sessionId]; exist {
+					defer delete(actor.sess2AckCb, msg.sessionId)
 					cb(msg.ack)
-					delete(actor.sess2AckCb, msg.sessionId)
 				}
 
 			case messageTypeOnceTimer:
 				if cb, exist := actor.sess2TimerCb[msg.sessionId]; exist {
+					defer delete(actor.sess2TimerCb, msg.sessionId)
 					cb()
-					delete(actor.sess2TimerCb, msg.sessionId)
 				}
 
 			case messageTypeForeverTimer:
@@ -97,4 +107,12 @@ func (actor *Actor) Exit() {
 // Run function f inside the main actor goroutine.
 func (actor *Actor) Run(f func()) {
 	actor.Timer.Once(0, f)
+}
+
+func (actor *Actor) GetName() string {
+	return actor.name
+}
+
+func (actor *Actor) IsExited() bool {
+	return actor.exited
 }

@@ -33,7 +33,10 @@ func NewActor(name string, pcall func(f func()), main MainFunc) *Actor {
 	actor.Timer.actor = actor
 
 	go actor.dispatch()
-	pcall(func() { main(actor) })
+
+	if main != nil {
+		pcall(func() { main(actor) })
+	}
 
 	return actor
 }
@@ -42,7 +45,7 @@ func NewActor(name string, pcall func(f func()), main MainFunc) *Actor {
 // and pass the return value into cb and execute it in the source main coroutine.
 func Call(source, target *Actor, cb AckCb, fname string, args ...interface{}) error {
 	if source != nil && target != nil {
-		source.call(target, cb, fname, args...)
+		source.Call(target, cb, fname, args...)
 		return nil
 	}
 	return fmt.Errorf("Actor not found")
@@ -51,8 +54,8 @@ func Call(source, target *Actor, cb AckCb, fname string, args ...interface{}) er
 // Send unidirectionally sends a message to the target Actor.
 func Send(target *Actor, fname string, args ...interface{}) error {
 	return sendTo(target, &Message{
-		fname: fname,
-		args:  args,
+		Fname: fname,
+		Args:  args,
 		typ:   messageTypeSend,
 	})
 }
